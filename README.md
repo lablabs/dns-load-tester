@@ -34,7 +34,7 @@ docker run --network=host -it dns-load-test google.com cloudflare.com
 docker pull lablabs/dns-load-test:0.0.1
 ```
 
-# Kubernetes Deploymeny
+# Kubernetes Deployment
 
 This tool can be deployed in Kubernetes with the configuration below. The log output of individual pods can be that collected using various methods (fluentd into ElasticSearch, etc.)
 
