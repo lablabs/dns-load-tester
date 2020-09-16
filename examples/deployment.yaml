@@ -1,0 +1,59 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dns-cache-test-config
+  namespace: default
+data:
+  config: |
+    .:53 {
+      forward . 100.64.0.10
+      log
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-load-test
+  namespace: default
+  labels:
+    app: dns-load-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-load-test
+  template:
+    metadata:
+      labels:
+        app: dns-load-test
+    spec:
+      containers:
+      - name: dns-load-test
+        image: lablabs/dns-load-test:0.0.1
+        imagePullPolicy: Always
+        command: ["/bin/bash", "-c", "sleep 5 && /dns-load -threads 50 google.com cloudflare.com"]
+        # args: []
+      - name: coredns
+        image: coredns/coredns:1.6.9
+        args: ["-conf", "/config/config"]
+        volumeMounts:
+          - name: config-volume
+            mountPath: /config
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 127.0.0.1
+        options:
+          - name: "use-vc"
+          - name: "timeout"
+            value: "1"
+          - name: "attempts"
+            value: "1"
+      volumes:
+        - name: config-volume
+          configMap:
+            # Provide the name of the ConfigMap containing the files you want
+            # to add to the container
+            name: dns-cache-test-config
+
